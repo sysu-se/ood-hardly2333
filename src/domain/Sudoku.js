@@ -7,13 +7,40 @@
 export class Sudoku {
     /**
      * @param {number[][]} grid - 一个 9x9 的二维数组，数字为正整数 0-9 ，其中 0 表示空格。
+     * @param {boolean[][]} [givens] - 可选，标记初始题面的单元格。若不传，则以 grid 中非零格作为 givens。
      */
-    constructor(grid) {
+    constructor(grid, givens) {
+        // 校验 9x9 形状
+        if (!Array.isArray(grid) || grid.length !== 9) {
+            throw new Error('Sudoku grid must be a 9x9 array');
+        }
+        for (let r = 0; r < 9; r++) {
+            if (!Array.isArray(grid[r]) || grid[r].length !== 9) {
+                throw new Error(`Sudoku grid row ${r} must have 9 columns`);
+            }
+            for (let c = 0; c < 9; c++) {
+                const v = grid[r][c];
+                if (!Number.isInteger(v) || v < 0 || v > 9) {
+                    throw new Error(`Sudoku cell (${r},${c}) value ${v} must be an integer 0-9`);
+                }
+            }
+        }
+
         /**
          * 数独网格数据。
          * @type {number[][]}
          */
         this.grid = grid.map(row => [...row]);
+
+        /**
+         * 标记哪些单元格属于初始题面（不可被用户修改）。
+         * @type {boolean[][]}
+         */
+        if (givens) {
+            this.givens = givens.map(row => [...row]);
+        } else {
+            this.givens = grid.map(row => row.map(v => v !== 0));
+        }
     }
 
     /**
@@ -25,6 +52,16 @@ export class Sudoku {
     }
 
     /**
+     * 查询指定坐标是否属于初始题面（不可修改）。
+     * @param {number} row - 行索引 (0-8)。
+     * @param {number} col - 列索引 (0-8)。
+     * @returns {boolean} 如果属于初始题面则返回 true。
+     */
+    isGiven(row, col) {
+        return this.givens[row][col];
+    }
+
+    /**
      * 在数独盘面上尝试填入一个数值。
      * @param {Object} move - 移动操作对象。
      * @param {number} move.row - 行索引 正整数 (0-8)。
@@ -32,6 +69,17 @@ export class Sudoku {
      * @param {number} move.value - 要填入的数值 正整数 (1-9，0 表示清空)。
     */
     guess({ row, col, value }) {
+        // 坐标范围校验
+        if (!Number.isInteger(row) || row < 0 || row > 8 ||
+            !Number.isInteger(col) || col < 0 || col > 8) {
+            throw new Error(`Invalid coordinate: (${row},${col})`);
+        }
+        // 值范围校验
+        if (!Number.isInteger(value) || value < 0 || value > 9) {
+            throw new Error(`Invalid value: ${value}`);
+        }
+        // 拒绝修改初始题面
+        if (this.isGiven(row, col)) return;
         this.grid[row][col] = value;
     }
 
@@ -44,17 +92,19 @@ export class Sudoku {
      * @returns {boolean} 如果该数值合法（未冲突）则返回 true，否则返回 false。
      */
     check({ row, col, value }) {
+        // 值 0 始终合法（表示清空）
+        if (value === 0) return true;
         for (let j = 0; j < 9; j++) {
-            if (this.grid[row][j] === value) return false;
+            if (j !== col && this.grid[row][j] === value) return false;
         }
         for (let i = 0; i < 9; i++) {
-            if (this.grid[i][col] === value) return false;
+            if (i !== row && this.grid[i][col] === value) return false;
         }
         const boxRow = Math.floor(row / 3) * 3;
         const boxCol = Math.floor(col / 3) * 3;
         for (let i = boxRow; i < boxRow + 3; i++) {
             for (let j = boxCol; j < boxCol + 3; j++) {
-                if (this.grid[i][j] === value) return false;
+                if ((i !== row || j !== col) && this.grid[i][j] === value) return false;
             }
         }
         return true;
@@ -65,7 +115,7 @@ export class Sudoku {
      * @returns {Sudoku} 一个拥有相同网格数据的新数独实例。
      */
     clone() {
-        return new Sudoku(this.getGrid());
+        return new Sudoku(this.getGrid(), this.givens);
     }
 
     /**
@@ -74,7 +124,8 @@ export class Sudoku {
      */
     toJSON() {
         return {
-            grid: this.getGrid()
+            grid: this.getGrid(),
+            givens: this.givens.map(row => [...row])
         };
     }
 
@@ -90,7 +141,10 @@ export class Sudoku {
         if (!json || !json.grid) {
             throw new Error('Invalid JSON: Sudoku grid is missing');
         }
-        return new Sudoku(json.grid);
+        if (!Array.isArray(json.grid) || json.grid.length !== 9) {
+            throw new Error('Invalid JSON: Sudoku grid must be 9x9');
+        }
+        return new Sudoku(json.grid, json.givens);
     }
 
     /**

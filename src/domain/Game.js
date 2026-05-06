@@ -46,6 +46,14 @@ export class Game {
      * @param {number} move.value - 正整数 1-9
      */
     guess(move) {
+        const { row, col, value } = move;
+
+        // 拒绝修改初始题面
+        if (this.sudoku.isGiven(row, col)) return;
+
+        // 跳过 no-op：值与当前相同则不产生历史
+        if (this.sudoku.getGrid()[row][col] === value) return;
+
         this.undoStack.push(this.sudoku.clone());
         this.sudoku.guess(move);
         this.redoStack = [];
