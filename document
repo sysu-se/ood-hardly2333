@@ -1,0 +1,31 @@
+    使用js中注释规范 jsdoc
+    类不需要注释写函数，而应该表明意图
+    可以将深复制用类函数eg. deepclone包装方法实现，这样就不用写注释了。
+    由于Js弱注释语言，需要表明一些输入的类型 /通过参数约束说明 eg. /* @param grid int [] [] 正方形二维数组，值为1-9 */，
+否则还要做校验工作。
+    接口约定的注释 /* @param ... @return ... */
+    算法选择、说明的注释 的话 可以用 //来写
+    getGrid改成 get grid()，访问的话就可以直接用sudoku.grid()使用
+    guess可以不直接修改当前值，而是返回一个新的sudoku
+    JSON.stringify是给框架用的
+
+Game:
+    不要直接在一个类里面引用另一个类的数据
+    eg. game.guess()中不修改grid，而直接返回一个新的sudoku，做成不变的类比较安全
+
+    对于不需要参数进行初始化的，可以直接在大类下面写，不用写在 constructor()
+    eg. Class Game{
+        history = []
+        constructor(sudoku){
+            ...
+        }
+    }
+
+    js用#(shell)说明变量是私有的
+    guess的move也是需要约束的
+    思考guess是谁用 eg.guess是玩家用的，可能需要检验合理性给出提示。
+    避免注释里面翻译注释名，而是写功能。
+    可以把sudoku变成immutable的obj，避免反复深拷贝
+    guess的语义和setsit不同，函数名要和实际内容符合
+    undoStack() redoStack() > history future，减少语义漂移
+    empty getter：eg getSudoku(){ return this.curSudoku } 一般都有参数上的约定之类的或者别的操作，不然为什么不直接访问那个呢。
