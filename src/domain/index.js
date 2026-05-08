@@ -7,8 +7,8 @@ export function createSudoku(input){
 export function createSudokuFromJSON(json){
     return Sudoku.fromJSON(json);
 }
-export function createGame({ sudoku }){
-    return new Game(sudoku);
+export function createGame({ sudoku, solvedGrid }){
+    return new Game(sudoku, sudoku.clone(), solvedGrid || null);
 }
 export function createGameFromJSON(json){
     return Game.fromJSON(json);

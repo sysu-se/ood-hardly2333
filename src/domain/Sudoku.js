@@ -111,6 +111,41 @@ export class Sudoku {
     }
 
     /**
+     * 获取指定格子的候选数集合（所有不违反数独规则的可填数字）。
+     * @param {number} row - 行索引 (0-8)。
+     * @param {number} col - 列索引 (0-8)。
+     * @returns {number[]} 候选数数组；若该格已有数字则返回空数组。
+     */
+    getCandidates(row, col) {
+        if (this.grid[row][col] !== 0) return [];
+        const candidates = [];
+        for (let v = 1; v <= 9; v++) {
+            if (this.check({ row, col, value: v })) {
+                candidates.push(v);
+            }
+        }
+        return candidates;
+    }
+
+    /**
+     * 查找所有候选数为 1 的格子（Naked Single / 推定值）。
+     * @returns {{row: number, col: number, value: number}[]} 可唯一确定的位置列表。
+     */
+    findNextMoves() {
+        const moves = [];
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (this.grid[r][c] !== 0) continue;
+                const cands = this.getCandidates(r, c);
+                if (cands.length === 1) {
+                    moves.push({ row: r, col: c, value: cands[0] });
+                }
+            }
+        }
+        return moves;
+    }
+
+    /**
      * 返回当前数独实例的深度拷贝。
      * @returns {Sudoku} 一个拥有相同网格数据的新数独实例。
      */

@@ -1,7 +1,7 @@
-<script>
+﻿<script>
 	import { BOX_SIZE } from '@sudoku/constants';
 	import { gamePaused } from '@sudoku/stores/game';
-	import { grid, userGrid, invalidCells } from '@sudoku/stores/grid';
+	import { grid, userGrid, invalidCells, exploreMode, exploreFailed, hintMessage } from '@sudoku/stores/grid';
 	import { settings } from '@sudoku/stores/settings';
 	import { cursor } from '@sudoku/stores/cursor';
 	import { candidates } from '@sudoku/stores/candidates';
@@ -29,13 +29,28 @@
 	}
 </script>
 
+{#if $exploreFailed}
+	<div class="bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded mb-2 text-sm text-center">
+		⚠ This path has previously failed in exploration
+	</div>
+{/if}
+
+{#if $hintMessage}
+	<div class="bg-blue-100 border border-blue-300 text-blue-800 px-3 py-2 rounded mb-2 text-sm text-center">
+		💡 {$hintMessage}
+	</div>
+{/if}
+
 <div class="board-padding relative z-10">
 	<div class="max-w-xl relative">
 		<div class="w-full" style="padding-top: 100%"></div>
 	</div>
 	<div class="board-padding absolute inset-0 flex justify-center">
 
-		<div class="bg-white shadow-2xl rounded-xl overflow-hidden w-full h-full max-w-xl grid" class:bg-gray-200={$gamePaused}>
+		<div class="bg-white shadow-2xl rounded-xl overflow-hidden w-full h-full max-w-xl grid"
+		     class:bg-gray-200={$gamePaused}
+		     class:ring-2={$exploreMode}
+		     class:ring-orange-400={$exploreMode}>
 
 			{#each $userGrid as row, y}
 				{#each row as value, x}
